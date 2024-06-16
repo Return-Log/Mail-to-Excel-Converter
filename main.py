@@ -10,7 +10,6 @@ import re
 import sys
 from datetime import datetime, timedelta
 from email.header import decode_header
-
 import html2text
 import pandas as pd
 from PyQt5 import QtCore
