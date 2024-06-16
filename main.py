@@ -1,23 +1,32 @@
-import sys
+"""
+https://github.com/Return-Log/Mail-to-Excel-Converter
+AGPL-3.0 license
+coding: UTF-8
+"""
+
+import email
+import imaplib
 import re
-from PyQt5 import QtWidgets, QtCore
+import sys
+from datetime import datetime, timedelta
+from email.header import decode_header
+
+import html2text
+import pandas as pd
+from PyQt5 import QtCore
+from PyQt5.QtCore import QThread, pyqtSignal
 from PyQt5.QtWidgets import (QApplication, QMainWindow, QLabel, QLineEdit, QComboBox,
                              QDateTimeEdit, QPushButton, QVBoxLayout, QWidget, QProgressBar,
                              QFileDialog, QTextEdit, QHBoxLayout)
-import imaplib
-import email
-from email.header import decode_header
-import pandas as pd
-from datetime import datetime, timedelta
-import html2text
-from PyQt5.QtCore import QThread, pyqtSignal
 
 
+# 邮件获取线程类，继承自QThread
 class EmailFetchThread(QThread):
-    update_progress = pyqtSignal(int)  # Signal to update progress bar
-    update_debug = pyqtSignal(str)     # Signal to update debug log
-    finished = pyqtSignal(pd.DataFrame)  # Signal to indicate fetching is finished
+    update_progress = pyqtSignal(int)  # 更新进度条的信号
+    update_debug = pyqtSignal(str)     # 更新调试日志的信号
+    finished = pyqtSignal(pd.DataFrame)  # 获取完成的信号
 
+    # 初始化线程
     def __init__(self, email_address, password, imap_server, filter_type, filter_value, since_date, end_date, language, parent=None):
         super().__init__(parent)
         self.email_address = email_address
@@ -29,6 +38,7 @@ class EmailFetchThread(QThread):
         self.end_date = end_date
         self.language = language
 
+    # 线程运行的代码
     def run(self):
         try:
             self.update_debug.emit(f"Connecting to {self.imap_server}..." if self.language == 'English' else f"正在连接到 {self.imap_server}...")
@@ -94,12 +104,14 @@ class EmailFetchThread(QThread):
         except Exception as e:
             self.update_debug.emit(str(e))
 
+    # 解码邮件头信息
     def decode_header_value(self, value):
         decoded_bytes, charset = decode_header(value)[0]
         if isinstance(decoded_bytes, bytes):
             return decoded_bytes.decode(charset or 'utf-8')
         return decoded_bytes
 
+    # 构建搜索条件
     def build_search_criteria(self, since_date, end_date):
         criteria = [f'SINCE {since_date.strftime("%d-%b-%Y")}', f'BEFORE {end_date.strftime("%d-%b-%Y")}']
         if self.filter_type == "From Sender" and self.is_ascii(self.filter_value):
@@ -108,20 +120,23 @@ class EmailFetchThread(QThread):
             criteria.append(f'SUBJECT "{self.filter_value}"')
         return ' '.join(criteria)
 
+    # 检查字符串是否为ASCII
     def is_ascii(self, s):
         return all(ord(c) < 128 for c in s)
 
 
+# 主应用类，继承自QMainWindow
 class MailToExcelApp(QMainWindow):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("Mail to Excel Converter")
         self.setGeometry(100, 100, 800, 600)
 
-        self.language = 'English'  # Default language
+        self.language = 'English'  # 默认语言
 
         self.initUI()
 
+    # 初始化UI
     def initUI(self):
         self.centralWidget = QWidget()
         self.setCentralWidget(self.centralWidget)
@@ -189,7 +204,14 @@ class MailToExcelApp(QMainWindow):
         layout.addWidget(self.debugOutput)
 
         self.infoLayout = QHBoxLayout()
-        self.infoLabel = QLabel("Mail to Excel Converter v1.0 | Visit us at: Log" if self.language == 'English' else "邮件到Excel转换器 v1.0 | 访问我们: Log")
+        self.infoLabel = QLabel('<a href="https://github.com/Return-Log/Mail-to-Excel-Converter">Mail to Excel '
+                                'Converter v1.0 | Log</a>' if self.language == 'English' else '<a '
+                                                                                              'href="https://github'
+                                                                                              '.com/Return-Log/Mail'
+                                                                                              '-to-Excel-Converter'
+                                                                                              '">邮件到Excel转换器 v1.0 | '
+                                                                                              'Log</a>')
+        self.infoLabel.setOpenExternalLinks(True)
         self.languageComboBox = QComboBox()
         self.languageComboBox.addItems(["English", "中文"])
         self.languageComboBox.currentIndexChanged.connect(self.changeLanguage)
@@ -199,17 +221,21 @@ class MailToExcelApp(QMainWindow):
 
         self.centralWidget.setLayout(layout)
 
+    # 过滤类型改变事件处理
     def onFilterTypeChange(self, index):
         self.filterValueInput.setEnabled(index != 0)
 
+    # 时间范围改变事件处理
     def onTimeRangeChange(self, index):
         self.startDateEdit.setEnabled(index == 4)
         self.endDateEdit.setEnabled(index == 4)
 
+    # 切换语言
     def changeLanguage(self, index):
         self.language = self.languageComboBox.currentText()
         self.updateUIText()
 
+    # 更新UI文本
     def updateUIText(self):
         self.emailLabel.setText("Email Address:" if self.language == 'English' else "邮箱地址：")
         self.passwordLabel.setText("Password:" if self.language == 'English' else "密码：")
@@ -228,16 +254,26 @@ class MailToExcelApp(QMainWindow):
         self.startDateLabel.setText("Start Date:" if self.language == 'English' else "开始日期：")
         self.endDateLabel.setText("End Date:" if self.language == 'English' else "结束日期：")
         self.exportButton.setText("Export to Excel" if self.language == 'English' else "导出到Excel")
-        self.infoLabel.setText("Mail to Excel Converter v1.0 | Visit us at: Log" if self.language == 'English' else "邮件到Excel转换器 v1.0 | 访问我们: Log")
+        self.infoLabel.setText('<a href="https://github.com/Return-Log/Mail-to-Excel-Converter">Mail to Excel '
+                               'Converter v1.0 | Log</a>' if self.language == 'English' else '<a '
+                                                                                             'href="https://github'
+                                                                                             '.com/Return-Log/Mail-to'
+                                                                                             '-Excel-Converter'
+                                                                                             '">邮件到Excel转换器 v1.0 | '
+                                                                                             'Log</a>')
+        self.infoLabel.setOpenExternalLinks(True)
 
+    # 记录调试信息
     def logDebug(self, message):
         self.debugOutput.append(message)
 
+    # 验证邮箱格式
     def validateEmail(self, email):
         email_regex = r'^\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b'
         if not re.match(email_regex, email):
             raise ValueError("Invalid email address format" if self.language == 'English' else "邮箱地址格式无效")
 
+    # 导出到Excel
     def exportToExcel(self):
         email_address = self.emailInput.text()
         password = self.passwordInput.text()
@@ -271,6 +307,7 @@ class MailToExcelApp(QMainWindow):
         except ValueError as ve:
             self.logDebug(str(ve))
 
+    # 保存到Excel
     def saveToExcel(self, df):
         save_path, _ = QFileDialog.getSaveFileName(self, "Save File", "", "Excel Files (*.xlsx)")
         if save_path:
@@ -282,6 +319,7 @@ class MailToExcelApp(QMainWindow):
         self.progressBar.setValue(0)
 
 
+# 主函数，运行应用
 if __name__ == "__main__":
     app = QApplication(sys.argv)
     window = MailToExcelApp()
