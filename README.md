@@ -13,7 +13,10 @@
 ## Software Information
 
 1. date: June 16, 2024
+
 2. Open Source License: AGPL-3.0
+
+   ![excel.png](https://s2.loli.net/2024/06/22/gOdZjr8LTsAbmHN.png)
 
 # 邮件到Excel转换器 v1.0
 
@@ -30,7 +33,10 @@
 ## 软件信息
 
 1. 日期：2024年6月16日
+
 2. 开源许可证：AGPL-3.0
+
+   ![excel.png](https://s2.loli.net/2024/06/22/iGKzlOxAaRqnXmr.png)
 
 ------
 

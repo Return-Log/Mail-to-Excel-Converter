@@ -204,12 +204,12 @@ class MailToExcelApp(QMainWindow):
 
         self.infoLayout = QHBoxLayout()
         self.infoLabel = QLabel('<a href="https://github.com/Return-Log/Mail-to-Excel-Converter">Mail to Excel '
-                                'Converter v1.0 | 2024 Log</a>' if self.language == 'English' else '<a '
+                                'Converter v1.0 | Copyright © 2024 Return-Log</a>' if self.language == 'English' else '<a'
                                                                                               'href="https://github'
                                                                                               '.com/Return-Log/Mail'
                                                                                               '-to-Excel-Converter'
                                                                                               '">邮件到Excel转换器 v1.0 | '
-                                                                                              '2024 Log</a>')
+                                                                                              'Copyright © 2024 Return-Log</a>')
         self.infoLabel.setOpenExternalLinks(True)
         self.languageComboBox = QComboBox()
         self.languageComboBox.addItems(["English", "中文"])
@@ -254,12 +254,12 @@ class MailToExcelApp(QMainWindow):
         self.endDateLabel.setText("End Date:" if self.language == 'English' else "结束日期：")
         self.exportButton.setText("Export to Excel" if self.language == 'English' else "导出到Excel")
         self.infoLabel.setText('<a href="https://github.com/Return-Log/Mail-to-Excel-Converter">Mail to Excel '
-                               'Converter v1.0 | 2024 Log</a>' if self.language == 'English' else '<a '
+                               'Converter v1.0 | Copyright © 2024 Return-Log</a>' if self.language == 'English' else '<a '
                                                                                              'href="https://github'
                                                                                              '.com/Return-Log/Mail-to'
                                                                                              '-Excel-Converter'
                                                                                              '">邮件到Excel转换器 v1.0 | '
-                                                                                             '2024 Log</a>')
+                                                                                             'Copyright © 2024 Return-Log</a>')
         self.infoLabel.setOpenExternalLinks(True)
 
     # 记录调试信息
