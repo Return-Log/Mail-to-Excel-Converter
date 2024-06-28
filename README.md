@@ -1,4 +1,6 @@
-# Mail to Excel Converter v1.0
+- 2024/6/28 v1.1 ：修复中文模式下无法使用关键词过滤错误
+
+# Mail to Excel Converter v1.1
 
 ## Steps for use
 
@@ -12,13 +14,13 @@
 
 ## Software Information
 
-1. date: June 16, 2024
+1. date: June 28, 2024
 
 2. Open Source License: AGPL-3.0
 
    ![excel.png](https://s2.loli.net/2024/06/22/gOdZjr8LTsAbmHN.png)
 
-# 邮件到Excel转换器 v1.0
+# 邮件到Excel转换器 v1.1
 
 ## 使用步骤
 
@@ -32,7 +34,7 @@
 
 ## 软件信息
 
-1. 日期：2024年6月16日
+1. 日期：2024年6月28日
 
 2. 开源许可证：AGPL-3.0
 

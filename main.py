@@ -20,6 +20,7 @@ from PyQt5.QtWidgets import (QApplication, QMainWindow, QLabel, QLineEdit, QComb
 
 
 # 邮件获取线程类，继承自QThread
+# 邮件获取线程类，继承自QThread
 class EmailFetchThread(QThread):
     update_progress = pyqtSignal(int)  # 更新进度条的信号
     update_debug = pyqtSignal(str)     # 更新调试日志的信号
@@ -40,22 +41,26 @@ class EmailFetchThread(QThread):
     # 线程运行的代码
     def run(self):
         try:
-            self.update_debug.emit(f"Connecting to {self.imap_server}..." if self.language == 'English' else f"正在连接到 {self.imap_server}...")
+            self.update_debug.emit(
+                f"Connecting to {self.imap_server}..." if self.language == 'English' else f"正在连接到 {self.imap_server}...")
             mail = imaplib.IMAP4_SSL(self.imap_server)
             mail.login(self.email_address, self.password)
             self.update_debug.emit("Login successful." if self.language == 'English' else "登录成功。")
             mail.select("inbox")
 
             search_criteria = self.build_search_criteria(self.since_date, self.end_date)
-            self.update_debug.emit(f"Searching emails with criteria: {search_criteria}" if self.language == 'English' else f"使用以下条件搜索邮件：{search_criteria}")
+            self.update_debug.emit(
+                f"Searching emails with criteria: {search_criteria}" if self.language == 'English' else f"使用以下条件搜索邮件：{search_criteria}")
 
             result, data = mail.search(None, search_criteria)
             if result != 'OK':
-                self.update_debug.emit(f"Error searching emails: {data}" if self.language == 'English' else f"搜索邮件出错：{data}")
+                self.update_debug.emit(
+                    f"Error searching emails: {data}" if self.language == 'English' else f"搜索邮件出错：{data}")
                 return
 
             email_ids = data[0].split()
-            self.update_debug.emit(f"Found {len(email_ids)} emails." if self.language == 'English' else f"找到 {len(email_ids)} 封邮件。")
+            self.update_debug.emit(
+                f"Found {len(email_ids)} emails." if self.language == 'English' else f"找到 {len(email_ids)} 封邮件。")
             emails = []
 
             for i, email_id in enumerate(email_ids):
@@ -85,11 +90,11 @@ class EmailFetchThread(QThread):
                         html_content = msg.get_payload(decode=True).decode(msg.get_content_charset() or 'utf-8')
                         body = html2text.html2text(html_content)
 
-                if self.filter_type == "From Sender" and not self.is_ascii(self.filter_value):
-                    if self.filter_value not in sender:
+                # 本地过滤
+                if not self.is_ascii(self.filter_value):
+                    if self.filter_type == "From Sender" or self.filter_type == "按发件人" and self.filter_value not in sender:
                         continue
-                if self.filter_type == "By Keyword" and not self.is_ascii(self.filter_value):
-                    if self.filter_value not in subject:
+                    if self.filter_type == "By Keyword" or self.filter_type == "按关键字" and self.filter_value not in subject:
                         continue
 
                 emails.append([date, sender, subject, body])
@@ -113,15 +118,17 @@ class EmailFetchThread(QThread):
     # 构建搜索条件
     def build_search_criteria(self, since_date, end_date):
         criteria = [f'SINCE {since_date.strftime("%d-%b-%Y")}', f'BEFORE {end_date.strftime("%d-%b-%Y")}']
-        if self.filter_type == "From Sender" and self.is_ascii(self.filter_value):
-            criteria.append(f'FROM "{self.filter_value}"')
-        elif self.filter_type == "By Keyword" and self.is_ascii(self.filter_value):
-            criteria.append(f'SUBJECT "{self.filter_value}"')
+        if self.is_ascii(self.filter_value):
+            if self.filter_type == "From Sender" or self.filter_type == "按发件人":
+                criteria.append(f'FROM "{self.filter_value}"')
+            elif self.filter_type == "By Keyword" or self.filter_type == "按关键字":
+                criteria.append(f'SUBJECT "{self.filter_value}"')
         return ' '.join(criteria)
 
     # 检查字符串是否为ASCII
     def is_ascii(self, s):
         return all(ord(c) < 128 for c in s)
+
 
 
 # 主应用类，继承自QMainWindow
@@ -204,11 +211,11 @@ class MailToExcelApp(QMainWindow):
 
         self.infoLayout = QHBoxLayout()
         self.infoLabel = QLabel('<a href="https://github.com/Return-Log/Mail-to-Excel-Converter">Mail to Excel '
-                                'Converter v1.0 | Copyright © 2024 Return-Log</a>' if self.language == 'English' else '<a'
+                                'Converter v1.1 | Copyright © 2024 Return-Log</a>' if self.language == 'English' else '<a'
                                                                                               'href="https://github'
                                                                                               '.com/Return-Log/Mail'
                                                                                               '-to-Excel-Converter'
-                                                                                              '">邮件到Excel转换器 v1.0 | '
+                                                                                              '">邮件到Excel转换器 v1.1 | '
                                                                                               'Copyright © 2024 Return-Log</a>')
         self.infoLabel.setOpenExternalLinks(True)
         self.languageComboBox = QComboBox()
@@ -254,11 +261,11 @@ class MailToExcelApp(QMainWindow):
         self.endDateLabel.setText("End Date:" if self.language == 'English' else "结束日期：")
         self.exportButton.setText("Export to Excel" if self.language == 'English' else "导出到Excel")
         self.infoLabel.setText('<a href="https://github.com/Return-Log/Mail-to-Excel-Converter">Mail to Excel '
-                               'Converter v1.0 | Copyright © 2024 Return-Log</a>' if self.language == 'English' else '<a '
+                               'Converter v1.1 | Copyright © 2024 Return-Log</a>' if self.language == 'English' else '<a '
                                                                                              'href="https://github'
                                                                                              '.com/Return-Log/Mail-to'
                                                                                              '-Excel-Converter'
-                                                                                             '">邮件到Excel转换器 v1.0 | '
+                                                                                             '">邮件到Excel转换器 v1.1 | '
                                                                                              'Copyright © 2024 Return-Log</a>')
         self.infoLabel.setOpenExternalLinks(True)
 
